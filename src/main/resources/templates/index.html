@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!-- 1. Подключаем пространство имен Thymeleaf -->
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Galactic Delivery</title>
+</head>
+<body>
+<h1>Межгалактическая Служба Доставки</h1>
+
+<h2>Текущие отправления</h2>
+<table>
+    <thead>
+    <!-- Статические заголовки таблицы -->
+    </thead>
+    <tbody>
+    <!-- 2. Цикл Thymeleaf -->
+    <tr th:each="parcel : ${parcels}">
+        <!-- 3. Вывод данных из объекта -->
+        <td th:text="${parcel.trackingNumber}">GD-12345678</td>
+        <td th:text="${parcel.destination}">Mars</td>
+        <td th:text="${parcel.status}">AWAITING DISPATCH</td>
+        <td th:text="${parcel.weight}">5.5</td>
+        <!-- 4. Форматирование даты -->
+        <td th:text="${#temporals.format(parcel.createdAt, 'dd-MM-yyyy HH:mm')}">01-01-2099 12:00</td>
+    </tr>
+    </tbody>
+</table>
+
+<hr/>
+
+<h2>Зарегистрировать новую посылку</h2>
+<!-- 5. Форма для отправки данных -->
+<form action="/add" method="post">
+    <label for="destination">Пункт назначения:</label>
+    <input type="text" id="destination" name="destination" required>
+
+    <label for="weight">Вес (кг):</label>
+    <input type="number" id="weight" name="weight" step="0.1" min="0.1" required>
+
+    <button type="submit">Отправить</button>
+</form>
+</body>
+</html>
