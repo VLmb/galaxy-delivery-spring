@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Delivery Control Center</title>
+    <!-- Эта строка заставит браузер автоматически перезагружать страницу каждые 5 секунд -->
+    <meta http-equiv="refresh" content="5">
+    <style>
+        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f9; color: #333; }
+        h1 { color: #1a237e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #3949ab; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .status-accepted { color: #f57c00; font-weight: bold; }
+        .status-courier { color: #1976d2; font-weight: bold; }
+        .status-on-the-way { color: #388e3c; font-weight: bold; }
+        .status-delivered { color: #757575; }
+    </style>
+</head>
+<body>
+<h1>Центр Управления Доставкой</h1>
+<h2>Статус всех отправлений</h2>
+
+<div th:if="${#lists.isEmpty(parcels)}">
+    <p>На данный момент нет активных посылок для отслеживания.</p>
+</div>
+
+<table th:unless="${#lists.isEmpty(parcels)}">
+    <thead>
+    <tr>
+        <th>Трекинг-номер</th>
+        <th>Назначение</th>
+        <th>Текущий статус</th>
+        <th>Вес (кг)</th>
+        <th>Последнее обновление</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Thymeleaf "пробежится" по коллекции "parcels" из модели -->
+    <tr th:each="parcel : ${parcels}">
+        <td th:text="${parcel.trackingNumber}"></td>
+        <td th:text="${parcel.destination}"></td>
+        <!-- Добавим немного стилей для статуса -->
+        <td>
+                    <span th:text="${parcel.status}"
+                          th:classappend="${parcel.status == 'Принято в отделении на Терре' ? 'status-accepted' : ''} +
+                                         ${parcel.status == 'Погружено на грузовой корабль ''Прогресс-X''' ? 'status-courier' : ''} +
+                                         ${parcel.status == 'В пути. Следующая точка: орбитальная станция ''Мир-2''' ? 'status-on-the-way' : ''} +
+                                         ${parcel.status == 'Доставлено получателю в кратере Гейла' ? 'status-delivered' : ''}">
+                    </span>
+        </td>
+        <td th:text="${parcel.weight}"></td>
+        <td th:text="${#temporals.format(parcel.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
