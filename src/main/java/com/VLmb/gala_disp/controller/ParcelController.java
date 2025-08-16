@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/parcels")
 @AllArgsConstructor
@@ -18,8 +20,12 @@ public class ParcelController {
 
     @GetMapping
     public Iterable<Parcel> getAllParcels(){
-
         return deliveryService.getAllParcels();
+    }
+
+    @GetMapping("/new")
+    public List<Parcel> getNewParcels() {
+        return deliveryService.findAndPrepareNewParcels();
     }
 
     @PostMapping

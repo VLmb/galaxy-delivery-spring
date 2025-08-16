@@ -2,9 +2,11 @@ package com.VLmb.gala_disp.service;
 
 import com.VLmb.gala_disp.entity.Parcel;
 import com.VLmb.gala_disp.repository.ParcelRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +24,22 @@ public class DeliveryService {
     public Iterable<Parcel> getAllParcels() {
         return repo.findAll();
     }
+
+    @Transactional
+    public List<Parcel> findAndPrepareNewParcels() {
+        // 1. Находим все посылки со статусом "ACCEPTED"
+        List<Parcel> newParcels = repo.findAllByStatus("ACCEPTED");
+
+        if (!newParcels.isEmpty()) {
+            for (Parcel parcel : newParcels) {
+                parcel.setStatus("WITH COURIER");
+            }
+            return (List<Parcel>) repo.saveAll(newParcels);
+        }
+
+        return List.of();
+    }
+
     public Optional<Parcel> findByTrackingNumber(String trackingNumber) {
         return repo.findByTrackingNumber(trackingNumber);
     }
