@@ -2,58 +2,142 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Delivery Control Center</title>
-    <!-- Эта строка заставит браузер автоматически перезагружать страницу каждые 5 секунд -->
-    <meta http-equiv="refresh" content="5">
+    <title>Центр Управления Доставкой</title>
+    <!-- Стили оставляем те же, они идеальны -->
     <style>
-        body { font-family: sans-serif; margin: 2em; background-color: #f4f4f9; color: #333; }
-        h1 { color: #1a237e; }
-        table { width: 100%; border-collapse: collapse; margin-top: 1em; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #3949ab; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .status-accepted { color: #f57c00; font-weight: bold; }
-        .status-courier { color: #1976d2; font-weight: bold; }
-        .status-on-the-way { color: #388e3c; font-weight: bold; }
-        .status-delivered { color: #757575; }
+        /* ... все ваши красивые стили остаются здесь ... */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: #ffffff; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        h1 { color: #2c3e50; border-bottom: 3px solid #4a69bd; padding-bottom: 10px; }
+        .parcel-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .parcel-table th, .parcel-table td { padding: 12px 15px; border-bottom: 1px solid #ddd; text-align: left; }
+        .parcel-table thead th { background-color: #4a69bd; color: #ffffff; font-weight: 600; text-transform: uppercase; font-size: 0.9em; }
+        .parcel-table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        .parcel-table tbody tr:hover { background-color: #e8efff; }
+        .status-badge { padding: 5px 12px; border-radius: 15px; color: white; font-size: 0.85em; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.1); }
+        .status-ACCEPTED, .status-SENT_TO_LOGISTICS { background-color: #f39c12; }
+        .status-WITH_COURIER { background-color: #3498db; }
+        .status-ON_THE_WAY { background-color: #2ecc71; }
+        .status-DELIVERED { background-color: #95a5a6; }
     </style>
 </head>
 <body>
-<h1>Центр Управления Доставкой</h1>
-<h2>Статус всех отправлений</h2>
+<div class="container">
+    <h1>Центр Управления Доставкой</h1>
+    <h2>Статус всех отправлений</h2>
 
-<div th:if="${#lists.isEmpty(parcels)}">
-    <p>На данный момент нет активных посылок для отслеживания.</p>
+    <table class="parcel-table">
+        <thead>
+        <tr>
+            <th>Трекинг-номер</th>
+            <th>Назначение</th>
+            <th>Текущий статус</th>
+            <th>Вес (кг)</th>
+            <th>Последнее обновление</th>
+        </tr>
+        </thead>
+        <!-- Тело таблицы будет заполняться динамически -->
+        <tbody id="parcels-table-body">
+        <tr th:each="parcel : ${parcels}">
+            <!-- Добавляем ID к строке для легкого поиска -->
+            <td th:text="${parcel.trackingNumber}"></td>
+            <td th:text="${parcel.destination}"></td>
+            <td>
+                    <span th:text="${parcel.status}"
+                          th:id="'status-' + ${parcel.trackingNumber}"
+                          th:class="'status-badge status-' + ${parcel.status}">
+                    </span>
+            </td>
+            <td th:text="${parcel.weight}"></td>
+            <td th:id="'updatedAt-' + ${parcel.trackingNumber}"
+                th:text="${#temporals.format(parcel.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div id="no-parcels-message" th:if="${#lists.isEmpty(parcels)}">
+        <p>На данный момент нет активных посылок для отслеживания.</p>
+    </div>
+
 </div>
 
-<table th:unless="${#lists.isEmpty(parcels)}">
-    <thead>
-    <tr>
-        <th>Трекинг-номер</th>
-        <th>Назначение</th>
-        <th>Текущий статус</th>
-        <th>Вес (кг)</th>
-        <th>Последнее обновление</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- Thymeleaf "пробежится" по коллекции "parcels" из модели -->
-    <tr th:each="parcel : ${parcels}">
-        <td th:text="${parcel.trackingNumber}"></td>
-        <td th:text="${parcel.destination}"></td>
-        <!-- Добавим немного стилей для статуса -->
-        <td>
-                    <span th:text="${parcel.status}"
-                          th:classappend="${parcel.status == 'Принято в отделении на Терре' ? 'status-accepted' : ''} +
-                                         ${parcel.status == 'Погружено на грузовой корабль ''Прогресс-X''' ? 'status-courier' : ''} +
-                                         ${parcel.status == 'В пути. Следующая точка: орбитальная станция ''Мир-2''' ? 'status-on-the-way' : ''} +
-                                         ${parcel.status == 'Доставлено получателю в кратере Гейла' ? 'status-delivered' : ''}">
-                    </span>
-        </td>
-        <td th:text="${parcel.weight}"></td>
-        <td th:text="${#temporals.format(parcel.updatedAt, 'dd-MM-yyyy HH:mm:ss')}"></td>
-    </tr>
-    </tbody>
-</table>
+<script>
+    const socket = new WebSocket('ws://' + window.location.host + '/ws');
+
+    socket.onopen = function(e) {
+        console.log("WebSocket-соединение установлено!");
+    };
+
+    socket.onmessage = function(event) {
+        console.log("Получено обновление:", event.data);
+
+        const payload = JSON.parse(event.data);
+        const parcel = payload.parcel;
+
+        // Прячем сообщение "нет посылок", если оно есть
+        const noParcelsMsg = document.getElementById('no-parcels-message');
+        if (noParcelsMsg) {
+            noParcelsMsg.style.display = 'none';
+        }
+
+        if (payload.eventType === 'NEW_PARCEL') {
+            addNewRow(parcel);
+        } else if (payload.eventType === 'PARCEL_UPDATE') {
+            updateRow(parcel);
+        }
+    };
+
+    // --- ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ СУЩЕСТВУЮЩЕЙ СТРОКИ ---
+    function updateRow(parcel) {
+        const statusSpan = document.getElementById('status-' + parcel.trackingNumber);
+        const updatedAtCell = document.getElementById('updatedAt-' + parcel.trackingNumber);
+
+        if (statusSpan && updatedAtCell) {
+            console.log("Обновляем посылку: " + parcel.trackingNumber);
+            // 1. Обновляем текст статуса
+            statusSpan.textContent = parcel.status;
+            // 2. Полностью заменяем классы, чтобы применился новый цвет
+            statusSpan.className = 'status-badge status-' + parcel.status;
+            // 3. Обновляем время
+            updatedAtCell.textContent = new Date(parcel.updatedAt).toLocaleString('ru-RU');
+        }
+    }
+
+    // --- ФУНКЦИЯ ДЛЯ ДОБАВЛЕНИЯ НОВОЙ СТРОКИ ---
+    function addNewRow(parcel) {
+        // Проверяем, нет ли уже такой строки (на случай дублирования сообщений)
+        if (document.getElementById('status-' + parcel.trackingNumber)) {
+            updateRow(parcel); // Если есть - просто обновим
+            return;
+        }
+
+        console.log("Добавляем новую посылку: " + parcel.trackingNumber);
+        const tableBody = document.getElementById("parcels-table-body");
+
+        // Создаем новую строку и вставляем ее в начало таблицы
+        const newRow = tableBody.insertRow(0);
+
+        // Заполняем ячейки
+        newRow.insertCell(0).textContent = parcel.trackingNumber;
+        newRow.insertCell(1).textContent = parcel.destination;
+
+        const statusCell = newRow.insertCell(2);
+        const statusSpan = document.createElement('span');
+        statusSpan.id = 'status-' + parcel.trackingNumber;
+        statusSpan.textContent = parcel.status;
+        statusSpan.className = 'status-badge status-' + parcel.status;
+        statusCell.appendChild(statusSpan);
+
+        newRow.insertCell(3).textContent = parcel.weight;
+
+        const updatedAtCell = newRow.insertCell(4);
+        updatedAtCell.id = 'updatedAt-' + parcel.trackingNumber;
+        updatedAtCell.textContent = new Date(parcel.updatedAt).toLocaleString('ru-RU');
+    }
+
+    socket.onclose = function(event) { console.log("WebSocket-соединение закрыто."); };
+    socket.onerror = function(error) { console.error("Ошибка WebSocket:", error); };
+</script>
+
 </body>
 </html>

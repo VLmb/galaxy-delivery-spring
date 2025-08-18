@@ -2,10 +2,13 @@ package com.VLmb.gala_contr.service;
 
 import com.VLmb.gala_contr.entity.Parcel;
 import com.VLmb.gala_contr.repository.ParcelRepository;
+import com.VLmb.gala_contr.websocket.WebSocketHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,8 @@ public class LogisticService {
     public final ParcelRepository parcelRepository;
     private final Random random = new Random();
 //    public final WebClient dispWebClient;
+    private final WebSocketHandler webSocketHandler;
+    private final ObjectMapper objectMapper;
 
     public Iterable<Parcel> getAllParcelsForDisplay() {
         return parcelRepository.findAll();
@@ -64,7 +69,7 @@ public class LogisticService {
         }
 
         for (Parcel parcel : parcels) {
-            int delayInSeconds = 5 + random.nextInt(46); // nextInt(46) даст число от 0 до 45
+            int delayInSeconds = 10 + random.nextInt(160); // nextInt(46) даст число от 0 до 45
 
             LocalDateTime timeThreshold = LocalDateTime.now().minusSeconds(delayInSeconds);
 
@@ -72,6 +77,7 @@ public class LogisticService {
                 parcel.setStatus(nextStatus);
                 parcel.setUpdatedAt(LocalDateTime.now());
                 parcelRepository.save(parcel);
+                broadcastUpdate(parcel);
             }
         }
     }
@@ -82,8 +88,16 @@ public class LogisticService {
 
         processParcelsWithStatus("WITH COURIER", "ON THE WAY");
         processParcelsWithStatus("ON THE WAY", "ARRIVED SOON");
-        processParcelsWithStatus("ARRIVED SOON", "DELIVERED");
+        processParcelsWithStatus("ARRIVED SOON", "AT THE PICK-UP POINT");
+        processParcelsWithStatus("AT THE PICK-UP POINT", "DELIVERED");
 
+    }
+
+    @SneakyThrows // Lombok-аннотация, чтобы не писать try-catch для objectMapper
+    private void broadcastUpdate(Parcel parcel) {
+        String parcelJson = objectMapper.writeValueAsString(parcel);
+        System.out.println("--- Sending WebSocket-update: " + parcelJson + " ---");
+        webSocketHandler.sendMessage(parcelJson);
     }
 
     @PostConstruct
