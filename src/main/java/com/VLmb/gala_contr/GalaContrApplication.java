@@ -18,4 +18,6 @@ public class GalaContrApplication {
 	public WebClient dispatcherWebClient() {
 		return WebClient.create("http://localhost:8081");
 	}
+
+
 }
