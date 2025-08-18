@@ -2,6 +2,7 @@ package com.VLmb.gala_disp.service;
 
 import com.VLmb.gala_disp.entity.Parcel;
 import com.VLmb.gala_disp.repository.ParcelRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,11 @@ import java.util.UUID;
 public class DeliveryService {
 
     private final ParcelRepository repo;
+
+    @PostConstruct
+    public void dropTable() {
+        repo.deleteAll();
+    }
 
     public Parcel registerNewParcel(String destination, double weight) {
         String trackingNumber = "GD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();

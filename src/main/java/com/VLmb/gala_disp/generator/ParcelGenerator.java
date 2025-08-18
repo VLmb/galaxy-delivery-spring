@@ -28,7 +28,7 @@ public class ParcelGenerator {
             "Vulcan Outpost, 40 Eridani A"
     };
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 20000)
     public void generateParcel() {
         String destination = DESTINATIONS[random.nextInt(DESTINATIONS.length)];
         double weight = 0.1 + (49.9 * random.nextDouble());
